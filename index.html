@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PromptCraft - Smart Keyword-to-Prompt Generator</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6366f1">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-group">
+        <div class="logo-badge">✨</div>
+        <div class="brand-text">
+          <h1>PromptCraft <span class="badge-hybrid">Hybrid Engine</span></h1>
+          <p>Instant Fragment-to-Prompt Synthesizer for AI Chats</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button id="openFavoritesBtn" class="btn-header" title="View Saved Prompts">
+          <span>⭐</span> Saved <span id="savedCountBadge" class="saved-badge">0</span>
+        </button>
+        <button id="installAppBtn" class="btn-header" style="display: none;" title="Install on Mobile / Desktop">
+          <span>📲</span> Install App
+        </button>
+        <button id="themeToggle" class="btn-icon" title="Toggle Theme">☀️</button>
+      </div>
+    </header>
+
+    <!-- Hero / Headline -->
+    <section class="hero-section">
+      <h2>Never stare at an empty AI chat box again.</h2>
+      <p class="hero-subtitle">
+        Type random fragments, disjointed words, or incomplete thoughts. PromptCraft instantly generates 3 high-yield, production-ready prompts tailored for your favorite AI.
+      </p>
+    </section>
+
+    <!-- Main Search & Synthesizer Card -->
+    <section class="search-card">
+      <div class="input-container">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="main-input" 
+          placeholder="e.g., weather, how, here  OR  cook, recipe, malay chinese indian food  OR  car, type, color, fuel"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <div class="input-btn-group">
+          <button id="micBtn" class="input-mic-btn" title="Voice Dictation: Speak your prompt ideas">
+            <span class="mic-icon">🎙️</span>
+            <span class="mic-pulse"></span>
+          </button>
+          <button id="clearBtn" class="input-clear-btn" title="Reset inquiry & clear input">
+            <span>✕</span> Clear
+          </button>
+          <button id="generateBtn" class="input-action-btn">
+            <span>⚡</span> Synthesize
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Category Chips -->
+      <div class="pill-section">
+        <div class="pill-row">
+          <span class="pill-label">Quick Ideas:</span>
+          <button class="pill-btn category-pill" data-preset="food">🍳 Local Food & Cooking</button>
+          <button class="pill-btn category-pill" data-preset="weather">🌦️ Weather & Everyday</button>
+          <button class="pill-btn category-pill" data-preset="car">🚗 Car & Vehicle Buying</button>
+          <button class="pill-btn category-pill" data-preset="content">📱 Social & Video Content</button>
+          <button class="pill-btn category-pill" data-preset="productivity">⚡ Productivity & Habits</button>
+          <button class="pill-btn category-pill" data-preset="learning">🎯 Explain & Teach</button>
+          <button class="pill-btn category-pill" data-preset="career">💼 Career & Professional Email</button>
+          <button class="pill-btn category-pill" data-preset="tech">💻 Coding & Architecture</button>
+          <button class="pill-btn category-pill" data-preset="travel">✈️ Travel & Itinerary</button>
+        </div>
+
+        <div class="pill-row" style="margin-top: 6px;">
+          <span class="pill-label">Modifiers:</span>
+          <button class="pill-btn modifier-pill" data-modifier="stepByStep">+ Step-by-Step</button>
+          <button class="pill-btn modifier-pill" data-modifier="beginner">+ For Beginners</button>
+          <button class="pill-btn modifier-pill" data-modifier="budget">+ Budget / Value Focused</button>
+          <button class="pill-btn modifier-pill" data-modifier="localContext">+ Local Southeast Asian Context</button>
+          <button class="pill-btn modifier-pill" data-modifier="tableFormat">+ Comparison Table</button>
+          <button class="pill-btn modifier-pill" data-modifier="pitfalls">+ Avoid Common Pitfalls</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Target Selector, AI Turbo Toggle & Domain Detection -->
+    <div class="controls-bar">
+      <div class="controls-left">
+        <div class="target-ai-selector">
+          <label for="targetAiSelect" style="font-size: 13px; font-weight: 600; color: var(--text-muted);">
+            Optimized for:
+          </label>
+          <select id="targetAiSelect" class="select-ai">
+            <option value="gemini" selected>Google Gemini</option>
+            <option value="chatgpt">OpenAI ChatGPT</option>
+            <option value="claude">Anthropic Claude</option>
+            <option value="deepseek">DeepSeek AI</option>
+          </select>
+        </div>
+
+        <!-- AI Turbo Mode Toggle -->
+        <div class="turbo-mode-group">
+          <button id="turboToggleBtn" class="btn-turbo" title="Toggle real Gemini 3.8 Flash AI in background">
+            <span class="turbo-indicator"></span>
+            <span class="turbo-icon">⚡</span>
+            <span id="turboStatusText">AI Turbo: OFF</span>
+          </button>
+          <button id="geminiKeyBtn" class="btn-icon-sm" title="Configure Gemini API Key & Model">
+            🔑
+          </button>
+        </div>
+      </div>
+
+      <div id="detectedDomainTag" class="detected-domain-tag" style="display: none;">
+        🎯 Detected: Culinary & Food
+      </div>
+    </div>
+
+    <!-- Output Prompt Cards Deck -->
+    <main id="cardsContainer" class="cards-grid"></main>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <div class="empty-icon">💡</div>
+      <h3>Type keywords or choose a quick idea above</h3>
+      <p>Even rough fragments like <em>"weather how here"</em> or <em>"car suv fuel hybrid"</em> will be expanded instantly.</p>
+    </div>
+
+    <!-- App Footer & Legal Disclaimers -->
+    <footer class="app-footer">
+      <div class="footer-links">
+        <span class="footer-badge">Free Version v1.0</span>
+        <span class="footer-dot">•</span>
+        <span>Developer: <strong style="color: #c7d2fe;">DaoMing</strong></span>
+        <span class="footer-dot">•</span>
+        <button id="openLegalBtn" class="footer-legal-btn">⚖️ Legal Disclaimer & Developer Protection</button>
+        <span class="footer-dot">•</span>
+        <span>Built with <a href="https://antigravity.google" target="_blank" rel="noopener noreferrer" class="credit-link">Google Antigravity</a></span>
+        <span class="footer-dot">•</span>
+        <span>Powered by <span class="credit-accent">Google Gemini</span></span>
+      </div>
+      <p class="footer-disclaimer">
+        Disclaimer: Provided "AS IS" for productivity & experimental use. Developers assume no liability for user usage, prompt content, or downstream AI responses.
+      </p>
+    </footer>
+  </div>
+
+  <!-- Favorites Drawer Modal -->
+  <div id="favoritesModal" class="modal-overlay">
+    <div class="drawer">
+      <div class="drawer-header">
+        <h3><span>⭐</span> Saved Prompts</h3>
+        <button id="closeFavoritesBtn" class="drawer-close" title="Close">✕</button>
+      </div>
+      <div id="savedPromptsList" class="drawer-content">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Gemini API Key Settings Modal -->
+  <div id="apiKeyModal" class="modal-overlay">
+    <div class="settings-modal-card">
+      <div class="drawer-header">
+        <h3><span>🔑</span> Google Gemini API Settings</h3>
+        <button id="closeApiKeyBtn" class="drawer-close" title="Close">✕</button>
+      </div>
+      <div class="settings-body">
+        <p class="settings-desc">
+          Connect your <strong>free Google Gemini API key</strong> to unlock <strong>AI Turbo Mode</strong>. This calls <strong>Gemini 3.8 Flash</strong> (with automatic fallback) in real-time to generate prompts for any arbitrary or creative thought!
+        </p>
+        <div class="api-help-box">
+          <span style="font-size: 20px;">💡</span>
+          <div>
+            Don't have a key? Get one 100% free with no credit card required at 
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style="color: #818cf8; font-weight: 600; text-decoration: underline;">Google AI Studio ↗</a>.
+          </div>
+        </div>
+        <div class="settings-input-group">
+          <label for="geminiModelSelect" style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; display: block;">Select Gemini Model:</label>
+          <select id="geminiModelSelect" class="select-ai" style="width: 100%; padding: 8px 12px; margin-bottom: 12px;">
+            <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Recommended - Fastest & Free)</option>
+            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Ultra Lightweight)</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Legacy)</option>
+          </select>
+        </div>
+        <div class="settings-input-group">
+          <label for="apiKeyInput" style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; display: block;">Gemini API Key:</label>
+          <div class="password-wrapper">
+            <input type="password" id="apiKeyInput" placeholder="AIzaSy..." autocomplete="off">
+            <button type="button" id="toggleKeyVisibility" class="btn-eye" title="Show/Hide Key">👁️</button>
+          </div>
+          <span class="key-hint">🔒 Stored safely in your browser's localStorage. Never sent to any third party.</span>
+        </div>
+        <div class="settings-actions">
+          <button id="clearApiKeyBtn" class="btn-secondary">Remove Key</button>
+          <button id="saveApiKeyBtn" class="btn-primary">Save & Enable Turbo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legal Protection, Disclaimer & Credits Modal -->
+  <div id="legalModal" class="modal-overlay">
+    <div class="legal-modal-card">
+      <div class="drawer-header">
+        <h3><span>⚖️</span> Legal Disclaimer & Attribution</h3>
+        <button id="closeLegalBtn" class="drawer-close" title="Close">✕</button>
+      </div>
+      <div class="legal-body">
+        <section class="legal-section">
+          <h4>1. Free Prototype & "AS IS" Provision</h4>
+          <p>
+            PromptCraft is an experimental software prototype designed to assist users in structuring prompts for artificial intelligence models. This tool is provided <strong>free of charge</strong> on an <strong>"AS IS" and "AS AVAILABLE"</strong> basis, without warranties of any kind, whether express, implied, statutory, or otherwise, including but not limited to fitness for a particular purpose or non-infringement.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h4>2. Complete Limitation of Developer Liability (User Exoneration)</h4>
+          <p>
+            To the maximum extent permitted by applicable law, <strong>the developers, contributors, authors, and hosting entities of PromptCraft shall not be liable</strong> for any direct, indirect, incidental, consequential, special, exemplary, or punitive damages arising out of or in connection with:
+          </p>
+          <ul>
+            <li>Any user's usage, application, transmission, deployment, or reliance upon prompts generated by this application;</li>
+            <li>Any content, advice, code, medical/legal assertions, errors, omissions, or hallucinations produced by external third-party AI models (including Google Gemini, OpenAI ChatGPT, Anthropic Claude, DeepSeek, or others);</li>
+            <li>Any financial, professional, personal, or operational actions, investments, purchases, or decisions undertaken in reliance on AI-generated outputs;</li>
+            <li>Any downtime, loss of data, speech recognition errors, or service interruptions.</li>
+          </ul>
+          <p>
+            <strong>Users bear sole, independent responsibility</strong> for reviewing, evaluating, and verifying the accuracy, safety, and legal compliance of any prompt before using it or acting upon downstream AI outputs.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h4>3. Attribution & Credits</h4>
+          <p>
+            • <strong>Developer:</strong> Conceived and developed by <strong>DaoMing</strong> as a free single-page SaaS utility for AI prompt generation.<br>
+            • <strong>Google Antigravity:</strong> This application was architected, paired, and developed using <strong>Google Antigravity</strong> (Advanced Agentic Pair-Programming Environment). All credits and acknowledgments for the developer pairing workflows belong to the Google Antigravity ecosystem.<br>
+            • <strong>Google Gemini:</strong> AI Turbo Mode connects optionally to Google's <strong>Gemini 3.8 Flash</strong> API via Google AI Studio.<br>
+            • <strong>Third-Party Trademarks:</strong> Gemini, ChatGPT, Claude, DeepSeek, and other mentioned platforms are registered trademarks of their respective owners. PromptCraft is an independent prototype and is not officially affiliated with, endorsed by, or sponsored by OpenAI, Anthropic, or DeepSeek.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <h4>4. Data Privacy & Local Execution</h4>
+          <p>
+            PromptCraft operates on an <strong>offline-first, client-side privacy architecture</strong>. All keyword parsing, heuristic synthesis, and favorites storage occur 100% locally on your device within your browser's <code>localStorage</code>. Any optional Google Gemini API key entered by the user is stored solely on the user's local device and is never collected, logged, or relayed through developer servers.
+          </p>
+        </section>
+
+        <div class="settings-actions">
+          <button id="acceptLegalBtn" class="btn-primary">I Understand & Agree</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Feedback -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
